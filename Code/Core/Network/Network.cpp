@@ -23,17 +23,17 @@
     #include <unistd.h>
 #endif
 
-const Network::IpAddress Network::Loopback = 0x0100007f;
-const Network::IpAddress6 Network::Loopback6 = {{{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }}};
+const uint32_t Network::Loopback = 0x0100007f;
+const in6_addr Network::Loopback6 = {{{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 }}};
 
 struct NameResolutionData
 {
-    AStackString<>      hostName;
-    Network::IpAddress  address;
-    Network::IpAddress6 address6;
-    Semaphore           completed;
-    Semaphore           safeToFree;
-    bool                success;
+    AStackString<>  hostName;
+    uint32_t        address;
+    in6_addr        address6;
+    Semaphore       completed;
+    Semaphore       safeToFree;
+    bool            success;
 };
 
 // GetHostName
@@ -58,7 +58,7 @@ struct NameResolutionData
 
 // GetHostIPFromName
 //------------------------------------------------------------------------------
-/*static*/ bool Network::GetHostIPFromName( const AString & hostName, IpAddress & ipAddress, IpAddress6 & ipAddress6, const uint32_t timeoutMS )
+/*static*/ bool Network::GetHostIPFromName( const AString & hostName, uint32_t & ipAddress, in6_addr & ipAddress6, const uint32_t timeoutMS )
 {
     PROFILE_FUNCTION
 
@@ -160,7 +160,7 @@ struct NameResolutionData
 
 // GetAddressAsInt
 //------------------------------------------------------------------------------
-/*static*/ bool Network::GetAddressFromString( const AString & address, IpAddress & ipAddress )
+/*static*/ bool Network::GetAddressFromString( const AString & address, uint32_t & ipAddress )
 {
     PROFILE_FUNCTION
 
@@ -169,7 +169,7 @@ struct NameResolutionData
 
 // GetAddressAsInt
 //------------------------------------------------------------------------------
-/*static*/ bool Network::GetAddressFromString( const AString & address, IpAddress6 & ipAddress )
+/*static*/ bool Network::GetAddressFromString( const AString & address, in6_addr & ipAddress )
 {
     PROFILE_FUNCTION
 
@@ -178,7 +178,7 @@ struct NameResolutionData
 
 // GetAddressAsString
 //------------------------------------------------------------------------------
-/*static*/ bool Network::GetAddressAsString( const IpAddress ipAddress, AString & address )
+/*static*/ bool Network::GetAddressAsString( const uint32_t ipAddress, AString & address )
 {
     PROFILE_FUNCTION
 
@@ -193,7 +193,7 @@ struct NameResolutionData
 
 // GetAddressAsString
 //------------------------------------------------------------------------------
-/*static*/ bool Network::GetAddressAsString( const IpAddress6 & ipAddress, AString & address )
+/*static*/ bool Network::GetAddressAsString( const in6_addr & ipAddress, AString & address )
 {
     PROFILE_FUNCTION
 
@@ -208,7 +208,7 @@ struct NameResolutionData
 
 // NameResolution
 //------------------------------------------------------------------------------
-/*static*/ bool Network::NameResolution( const AString & hostName, IpAddress & ipAddress )
+/*static*/ bool Network::NameResolution( const AString & hostName, uint32_t & ipAddress )
 {
     PROFILE_FUNCTION
 
@@ -235,7 +235,7 @@ struct NameResolutionData
 
 // NameResolution
 //------------------------------------------------------------------------------
-/*static*/ bool Network::NameResolution( const AString & hostName, IpAddress6 & ipAddress )
+/*static*/ bool Network::NameResolution( const AString & hostName, in6_addr & ipAddress )
 {
     PROFILE_FUNCTION
 
