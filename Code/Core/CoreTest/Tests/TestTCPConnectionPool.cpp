@@ -20,6 +20,8 @@
 // Defines
 //------------------------------------------------------------------------------
 #define NUM_TEST_PASSES ( 16 )
+#define LOCALHOST ( "127.0.0.1" )
+#define LOCALHOST6 ( "::1" )
 
 // unique port for test in all configs so the tests can run in parallel
 #ifdef WIN64
@@ -40,17 +42,37 @@
 class TestTestTCPConnectionPool : public UnitTest
 {
 private:
+    void OneServerMultipleClients( const AString & host ) const;
+    void MultipleServersOneClient( const AString & host ) const;
+    void ConnectionCount( const AString & host ) const;
+    void DataTransfer( const AString & host ) const;
+
+    void ConnectionStuckDuringSend( const AString & host ) const;
+    static uint32_t ConnectionStuckDuringSend_ThreadFunc( void * userData );
+
+    void ConnectionFailure( const AString & host ) const;
+
     DECLARE_TESTS
 
+    // ipv4
     void TestOneServerMultipleClients() const;
     void TestMultipleServersOneClient() const;
     void TestConnectionCount() const;
     void TestDataTransfer() const;
 
     void TestConnectionStuckDuringSend() const;
-    static uint32_t TestConnectionStuckDuringSend_ThreadFunc( void * userData );
 
     void TestConnectionFailure() const;
+
+    // ipv6
+    void TestOneServerMultipleClients_ipv6() const;
+    void TestMultipleServersOneClient_ipv6() const;
+    void TestConnectionCount_ipv6() const;
+    void TestDataTransfer_ipv6() const;
+
+    void TestConnectionStuckDuringSend_ipv6() const;
+
+    void TestConnectionFailure_ipv6() const;
 };
 
 // Helper Macros
@@ -75,11 +97,34 @@ REGISTER_TESTS_BEGIN( TestTestTCPConnectionPool )
     REGISTER_TEST( TestDataTransfer )
     REGISTER_TEST( TestConnectionStuckDuringSend )
     REGISTER_TEST( TestConnectionFailure )
+
+    REGISTER_TEST( TestOneServerMultipleClients_ipv6 )
+    REGISTER_TEST( TestMultipleServersOneClient_ipv6 )
+    REGISTER_TEST( TestConnectionCount_ipv6 )
+    REGISTER_TEST( TestDataTransfer_ipv6 )
+    REGISTER_TEST( TestConnectionStuckDuringSend_ipv6 )
+    REGISTER_TEST( TestConnectionFailure_ipv6 )
 REGISTER_TESTS_END
 
 // TestOneServerMultipleClients
 //------------------------------------------------------------------------------
 void TestTestTCPConnectionPool::TestOneServerMultipleClients() const
+{
+    AStackString<> host( LOCALHOST );
+    OneServerMultipleClients( host );
+}
+
+// TestOneServerMultipleClients_ipv6
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::TestOneServerMultipleClients_ipv6() const
+{
+    AStackString<> host( LOCALHOST6 );
+    OneServerMultipleClients( host );
+}
+
+// OneServerMultipleClients
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::OneServerMultipleClients( const AString & host ) const
 {
     const uint16_t testPort( TEST_PORT );
 
@@ -96,7 +141,7 @@ void TestTestTCPConnectionPool::TestOneServerMultipleClients() const
         {
             // All each client to retry in case of local resource exhaustion
             Timer t;
-            while ( clients[ j ].Connect( AStackString<>( "127.0.0.1" ), testPort ) == nullptr )
+            while ( clients[ j ].Connect( host, testPort ) == nullptr )
             {
                 TEST_ASSERTM( t.GetElapsed() < 5.0f, "Failed to connect. (Pass %u, client %u)", i, (uint32_t)j );
                 Thread::Sleep( 50 );
@@ -112,6 +157,22 @@ void TestTestTCPConnectionPool::TestOneServerMultipleClients() const
 // TestMultipleServersOneClient
 //------------------------------------------------------------------------------
 void TestTestTCPConnectionPool::TestMultipleServersOneClient() const
+{
+    AStackString<> host( LOCALHOST );
+    MultipleServersOneClient( host );
+}
+
+// TestMultipleServersOneClient_ipv6
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::TestMultipleServersOneClient_ipv6() const
+{
+    AStackString<> host( LOCALHOST6 );
+    MultipleServersOneClient( host );
+}
+
+// MultipleServersOneClient
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::MultipleServersOneClient( const AString & host ) const
 {
     const uint16_t testPort( TEST_PORT );
 
@@ -134,7 +195,7 @@ void TestTestTCPConnectionPool::TestMultipleServersOneClient() const
             // All each connection to be retried in case of local resource exhaustion
             Timer t;
             const uint16_t port = (uint16_t)( testPort + j );
-            while ( clientA.Connect( AStackString<>( "127.0.0.1" ), port ) == nullptr )
+            while ( clientA.Connect( host, port ) == nullptr )
             {
                 TEST_ASSERTM( t.GetElapsed() < 5.0f, "Failed to connect. (Pass %u, client %u)", i, (uint32_t)j );
                 Thread::Sleep( 50 );
@@ -152,6 +213,22 @@ void TestTestTCPConnectionPool::TestMultipleServersOneClient() const
 // TestConnectionCount
 //------------------------------------------------------------------------------
 void TestTestTCPConnectionPool::TestConnectionCount() const
+{
+    AStackString<> host( LOCALHOST );
+    ConnectionCount( host );
+}
+
+// TestConnectionCount_ipv6
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::TestConnectionCount_ipv6() const
+{
+    AStackString<> host( LOCALHOST6 );
+    ConnectionCount( host );
+}
+
+// ConnectionCount
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::ConnectionCount( const AString & host ) const
 {
     const uint16_t testPort( TEST_PORT );
 
@@ -173,7 +250,7 @@ void TestTestTCPConnectionPool::TestConnectionCount() const
                 // All each connection to be retried in case of local resource exhaustion
                 Timer t;
                 const uint16_t port = (uint16_t)( testPort + j );
-                while ( clientA.Connect( AStackString<>( "127.0.0.1" ), port ) == nullptr )
+                while ( clientA.Connect( host, port ) == nullptr )
                 {
                     TEST_ASSERTM( t.GetElapsed() < 5.0f, "Failed to connect. (Pass %u, client %u)", i, (uint32_t)j );
                     Thread::Sleep( 50 );
@@ -195,6 +272,22 @@ void TestTestTCPConnectionPool::TestConnectionCount() const
 // TestDataTransfer
 //------------------------------------------------------------------------------
 void TestTestTCPConnectionPool::TestDataTransfer() const
+{
+    AStackString<> host( LOCALHOST );
+    DataTransfer( host );
+}
+
+// TestDataTransfer_ipv6
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::TestDataTransfer_ipv6() const
+{
+    AStackString<> host( LOCALHOST6 );
+    DataTransfer( host );
+}
+
+// DataTransfer
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::DataTransfer( const AString & host ) const
 {
     // a special server which will assert that it receives some expected data
     class TestServer : public TCPConnectionPool
@@ -230,7 +323,7 @@ void TestTestTCPConnectionPool::TestDataTransfer() const
 
     // client
     TCPConnectionPool client;
-    const ConnectionInfo * ci = client.Connect( AStackString<>( "127.0.0.1" ), testPort );
+    const ConnectionInfo * ci = client.Connect( host, testPort );
     TEST_ASSERT( ci );
 
     size_t sendSize = 31;
@@ -267,6 +360,22 @@ void TestTestTCPConnectionPool::TestDataTransfer() const
 //------------------------------------------------------------------------------
 void TestTestTCPConnectionPool::TestConnectionStuckDuringSend() const
 {
+    AStackString<> host( LOCALHOST );
+    ConnectionStuckDuringSend( host );
+}
+
+// TestConnectionStuckDuringSend_ipv6
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::TestConnectionStuckDuringSend_ipv6() const
+{
+    AStackString<> host( LOCALHOST6 );
+    ConnectionStuckDuringSend( host );
+}
+
+// ConnectionStuckDuringSend
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::ConnectionStuckDuringSend( const AString & host ) const
+{
     // create a slow server
     class SlowServer : public TCPConnectionPool
     {
@@ -283,11 +392,11 @@ void TestTestTCPConnectionPool::TestConnectionStuckDuringSend() const
 
     // connect to slow server
     TCPConnectionPool client;
-    const ConnectionInfo * ci = client.Connect( AStackString<>( "127.0.0.1" ), testPort );
+    const ConnectionInfo * ci = client.Connect( host, testPort );
     TEST_ASSERT( ci );
 
     // start a thread to flood the slow server
-    Thread::ThreadHandle h = Thread::CreateThread( TestConnectionStuckDuringSend_ThreadFunc,
+    Thread::ThreadHandle h = Thread::CreateThread( ConnectionStuckDuringSend_ThreadFunc,
                                                    "Sender",
                                                    ( 64 * KILOBYTE ),
                                                    (void *)ci );
@@ -308,7 +417,10 @@ void TestTestTCPConnectionPool::TestConnectionStuckDuringSend() const
 
     client.ShutdownAllConnections();
 }
-/*static*/ uint32_t TestTestTCPConnectionPool::TestConnectionStuckDuringSend_ThreadFunc( void * userData )
+
+// ConnectionStuckDuringSend_ThreadFunc
+//------------------------------------------------------------------------------
+/*static*/ uint32_t TestTestTCPConnectionPool::ConnectionStuckDuringSend_ThreadFunc( void * userData )
 {
     PROFILE_SET_THREAD_NAME( "ConnectionStuckSend" )
 
@@ -331,6 +443,22 @@ void TestTestTCPConnectionPool::TestConnectionStuckDuringSend() const
 //------------------------------------------------------------------------------
 void TestTestTCPConnectionPool::TestConnectionFailure() const
 {
+    AStackString<> host( LOCALHOST );
+    ConnectionFailure( host );
+}
+
+// TestConnectionFailure_ipv6
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::TestConnectionFailure_ipv6() const
+{
+    AStackString<> host( LOCALHOST6 );
+    ConnectionFailure( host );
+}
+
+// ConnectionFailure
+//------------------------------------------------------------------------------
+void TestTestTCPConnectionPool::ConnectionFailure( const AString & host ) const
+{
     const uint16_t testPort( TEST_PORT );
     const uint32_t timeoutMS( 100 );
 
@@ -339,7 +467,7 @@ void TestTestTCPConnectionPool::TestConnectionFailure() const
     // Check that TCPConnectionPool doesn't create ConnectionInfo when
     // connection fails after wait for it via select().
     // To do that we try to connect to our chosen test port without listening on it.
-    TEST_ASSERT( client.Connect( AStackString<>( "127.0.0.1" ), testPort, timeoutMS ) == nullptr );
+    TEST_ASSERT( client.Connect( host, testPort, timeoutMS ) == nullptr );
 
     client.ShutdownAllConnections();
 }
